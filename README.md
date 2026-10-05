@@ -70,7 +70,7 @@ Work remaining
 - [x] Flip screen / cocktail, with the score panel's flipped window taken
       from the board rather than from MAME (see docs/hardware-notes.md)
 - [x] Remove the twelve M62 games and their variant logic
-- [ ] High score saving (MRAs done, awaiting a hardware test)
+- [x] High score saving (verified on hardware)
 - [ ] The board's LM358 ADPCM low-pass, which MAME omits (OSD "Audio
       filter", built, awaiting a hardware listen; see docs/hardware-notes.md)
 
