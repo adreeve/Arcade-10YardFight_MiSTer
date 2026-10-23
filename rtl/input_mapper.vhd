@@ -55,7 +55,7 @@ begin
         jamma_v(1).d(1) := jamma.p(1).left;
         jamma_v(1).d(2) := jamma.p(1).down;
         jamma_v(1).d(3) := jamma.p(1).up;
-      --unused
+        jamma_v(1).d(4) := dips(8); -- unused on the board; Vs 10-Yard Fight (World) needs 0, set by its MRA
         jamma_v(1).d(5) := jamma.p(1).button(2);
       --unused
         jamma_v(1).d(7) := jamma.p(1).button(1);

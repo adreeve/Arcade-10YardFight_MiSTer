@@ -217,7 +217,7 @@ localparam CONF_STR = {
 	"DIP;",
 	"-;",
 	"R0,Reset;",
-	"J1,Dig Left,Dig Right,Start 1P,Start 2P,Coin,Pause;",
+	"J1,Sideways Pass,Forward Pass,Start 1P,Start 2P,Coin,Pause;",
 	"jn,A,B,Start,Select,R,L;",
 	"V,v",`BUILD_DATE
 };
@@ -295,6 +295,15 @@ assign rom_download = ioctl_download & !ioctl_index;
 
 reg [7:0] sw[8];
 always @(posedge clk_sys) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
+
+// IN1 bit 4, unused on the board and read as 1, except that Vs 10-Yard
+// Fight (World) halts unless it reads 0. Each ROM download resets it to 1;
+// that set's MRA then sends 00 as rom index 1.
+reg in1_b4 = 1;
+always @(posedge clk_sys) begin
+	if (rom_download) in1_b4 <= 1;
+	else if (ioctl_wr && (ioctl_index==1) && !ioctl_addr) in1_b4 <= ioctl_dout[0];
+end
 
 wire m_start   = joy1[6] | joy2[6];
 wire m_start_2 = joy1[7] | joy2[7];
@@ -510,7 +519,7 @@ target_top target_top(
 	.audio_filter(status[7]),
 	.adpcm_gain(status[9:8]),
 	.audio_out(audio),
-	.switches_i(sw[0]),
+	.switches_i({in1_b4, sw[0]}),	// bit 8: IN1 bit 4
 	.switches_2(sw[1]),
 	.usr_coin1(m_coin_1),
 	.usr_coin2(m_coin_2),
