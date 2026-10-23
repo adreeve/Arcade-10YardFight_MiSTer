@@ -20,6 +20,24 @@ copied into this repository as its starting point:
 - Published as [MiSTer-devel/Arcade-IremM62_MiSTer](https://github.com/MiSTer-devel/Arcade-IremM62_MiSTer),
   imported here at commit `8324124` (2025-12-09)
 
+It also includes these components, each under its own author's terms (see
+the file headers):
+
+| Component | Files | Author(s) | License |
+|---|---|---|---|
+| T80 Z80 CPU (main CPU) | `rtl/T80/` | Daniel Wallner; MikeJ, TobiFlex, Sean Riddle, Sorgelig | BSD-style |
+| CPU68 6800/6803 CPU (sound CPU) | `rtl/6800/cpu68.vhd` | John E. Kent | GPL |
+| YM2149 / AY-3-8910 sound | `rtl/YM2149.sv` | MikeJ, Sorgelig | BSD-style |
+| jt5205 MSM5205 ADPCM | `rtl/jt5205/` | Jose Tejada Gomez (jotego) | GPL-3.0 |
+| SDRAM controller | `rtl/sdram.sv` | Till Harbaum, Gyorgy Szombathelyi | GPL-3.0 |
+| High score saving | `rtl/hiscore.v` | Alan Steremberg, Jim Gregory (JimmyStones) | GPL-3.0 |
+| Pause | `rtl/pause.v` | Jim Gregory (JimmyStones) | GPL-3.0 |
+| MiSTer framework | `sys/` | Sorgelig and the MiSTer-devel contributors | GPL |
+
+Hiscore addresses come from MAME's `hiscore.dat`; ROM layouts, DIP switch
+meanings and the M58 memory map from MAME's `m58.cpp`, checked against Irem's
+operator's manual and schematics (see Accuracy below).
+
 Licensing follows upstream. The M62 core is distributed under the GPL, as is
 the MiSTer `sys` framework it includes; this work inherits those terms.
 
@@ -85,6 +103,10 @@ All six sets in MAME's `m58.cpp`, all the same game:
 - `10yard85` — 10-Yard Fight '85 (US, Taito license)
 
 Note these are Irem M58 arcade sets, not the Nintendo VS. System.
+
+The parent set's MRA is in `releases/`; the five clones are in
+`releases/_alternatives/_10-Yard Fight/`. Copy both to `_Arcade/` on the
+MiSTer, and the `.rbf` to `_Arcade/cores/`.
 
 Accuracy
 --------
