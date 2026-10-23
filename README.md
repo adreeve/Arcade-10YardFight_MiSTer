@@ -106,7 +106,9 @@ Note these are Irem M58 arcade sets, not the Nintendo VS. System.
 
 The parent set's MRA is in `releases/`; the five clones are in
 `releases/_alternatives/_10-Yard Fight/`. Copy both to `_Arcade/` on the
-MiSTer, and the `.rbf` to `_Arcade/cores/`.
+MiSTer. Copy the core, `releases/Arcade-10YardFight_YYYYMMDD.rbf`, to
+`_Arcade/cores/` as `10YardFight_YYYYMMDD.rbf`: the MiSTer updater drops the
+`Arcade-` prefix, and the MRAs look for a core named `10yardfight`.
 
 Accuracy
 --------

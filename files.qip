@@ -31,4 +31,5 @@ set_global_assignment -name QIP_FILE rtl/jt5205/jt5205.qip
 set_global_assignment -name QIP_FILE rtl/T80/T80.qip
 set_global_assignment -name VHDL_FILE rtl/T80/Z80.vhd
 set_global_assignment -name VHDL_FILE rtl/6800/cpu68.vhd
+set_global_assignment -name SDC_FILE Arcade-10YardFight.sdc
 set_global_assignment -name SYSTEMVERILOG_FILE "Arcade-10YardFight.sv"
