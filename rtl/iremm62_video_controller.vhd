@@ -44,7 +44,10 @@ begin
   -- Video scanner --
   -------------------
   --  hcnt [x080..x0FF-x100..x1FF] => 128+256 = 384 pixels,  384/6.144Mhz => 1 line is 62.5us (16.000KHz)
-  --  vcnt [x0E6..x0FF-x100..x1FF] =>  26+256 = 282 lines, 1 frame is 260 x 62.5us = 17.625ms (56.74Hz)
+  --  vcnt [x0E6..x0FF-x100..x1FF] =>  26+256 = 282 lines, 1 frame is 282 x 62.5us = 17.625ms (56.74Hz)
+  --  PAL: vcnt [x0C0..x1FF] => 320 lines, 20ms (50.00Hz). The extra lines are
+  --  all blanking ahead of vsync, which stays at x0DC, so the picture keeps
+  --  its place on screen.
 
   vsync_start <= '0'&x"F4" when palmode = '0' else '0'&x"DC";
 
@@ -60,7 +63,7 @@ begin
         vcnt <= vcnt + 1;
         if vcnt = '1'&x"FF" then
           if palmode = '1' then
-            vcnt <= '0'&x"C8";  -- 312 lines/PAL 50 Hz
+            vcnt <= '0'&x"C0";  -- 320 lines: 16.000KHz / 320 = 50.00Hz
           else
             vcnt <= '0'&x"E6";  -- from M52 schematics
           end if;

@@ -51,8 +51,6 @@ module sdram (
 
 	input      [17:1] cpu1_addr,
 	output reg [15:0] cpu1_q,
-	input      [17:1] cpu2_addr,
-	output reg [15:0] cpu2_q,
 
 	input             port2_req,
 	output reg        port2_ack,
@@ -83,10 +81,16 @@ localparam NO_WRITE_BURST = 1'b1;   // 0= write burst enabled, 1=only single acc
 
 localparam MODE = { 3'b000, NO_WRITE_BURST, OP_MODE, CAS_LATENCY, ACCESS_TYPE, BURST_LENGTH}; 
 
-// 64ms/8192 rows = 7.8us -> 842 cycles@108MHz
-localparam RFRSH_CYCLES = 10'd842;
-//parameter  MHZ = 16'd80; // 80 MHz default clock, set it to proper value to calculate refresh rate
-//localparam RFRSH_CYCLES = 16'd78*MHZ/4'd10;
+// The MT48LC16M16 needs 8192 rows refreshed every 64ms: one AUTO REFRESH
+// every 7.8us on average. need_refresh is raised after RFRSH_CYCLES, but the
+// refresh only goes out at a STATE_RAS1 with both bank pairs idle. A cycle
+// is 12 clocks (clkref = 6.144MHz at 73.728MHz); in HBLANK the sprite
+// fetches take every other cycle and the tile fetches one in eight, and the
+// Z80 at most one in six, so the wait is at most about six cycles: 72
+// clocks, 1us. Raising it after 6.5us puts every refresh out by 7.5us,
+// a full 8192-row sweep within 61.2ms.
+// clk is clk_mem, the PLL's 73.728MHz output: 6.5us x 73.728MHz = 479.
+localparam RFRSH_CYCLES = 10'd479;
 
 
 // ---------------------------------------------------------------------
@@ -178,6 +182,9 @@ assign SDRAM_nWE  = sd_cmd[0];
 
 reg [24:1] addr_latch[2];
 reg [24:1] addr_latch_next[2];
+// last address fetched per cached reader, indexed by its PORT_ number:
+// addr_last[PORT_CPU1], addr_last2[PORT_SP/CHR1/CHR2]. Downloads (PORT_REQ)
+// are writes and have no entry.
 reg [17:1] addr_last[2];
 reg [19:2] addr_last2[4];
 reg [15:0] din_latch[2];
@@ -190,7 +197,6 @@ reg        port2_state;
 
 localparam PORT_NONE  = 3'd0;
 localparam PORT_CPU1  = 3'd1;
-localparam PORT_CPU2  = 3'd2;
 localparam PORT_CPU3  = 3'd3;
 localparam PORT_SP    = 3'd1;
 localparam PORT_CHR1  = 3'd2;
@@ -215,9 +221,6 @@ always @(*) begin
         end else if (cpu1_addr != addr_last[PORT_CPU1]) begin
                 next_port[0] = PORT_CPU1;
                 addr_latch_next[0] = { 7'd0, cpu1_addr };
-        end else if (cpu2_addr != addr_last[PORT_CPU2]) begin
-                next_port[0] = PORT_CPU2;
-                addr_latch_next[0] = { 7'd0, cpu2_addr };
         end else begin
                 next_port[0] = PORT_NONE;
                 addr_latch_next[0] = addr_latch[0];
@@ -285,7 +288,7 @@ always @(posedge clk) begin
 				SDRAM_A <= addr_latch_next[0][22:10];
                                 SDRAM_BA <= addr_latch_next[0][24:23];
 				//SDRAM_BA <= {1'b0, addr_latch_next[0][23]};
-                                addr_last[next_port[0]] <= addr_latch_next[0][17:1];
+                                if (next_port[0] == PORT_CPU1) addr_last[PORT_CPU1] <= addr_latch_next[0][17:1];
 				//addr_last[next_port[0]] <= addr_latch_next[0];
 				if (next_port[0] == PORT_REQ) begin
 					{ oe_latch[0], we_latch[0] } <= { ~port1_we, port1_we };
@@ -310,7 +313,7 @@ always @(posedge clk) begin
 				sd_cmd <= CMD_ACTIVE;
 				SDRAM_A <= addr_latch_next[1][22:10];
                                 SDRAM_BA <= addr_latch_next[1][24:23];
-                                addr_last2[next_port[1]] <= addr_latch_next[1][19:2];
+                                if (next_port[1] != PORT_REQ) addr_last2[next_port[1]] <= addr_latch_next[1][19:2];
 				//SDRAM_BA <= {1'b1, addr_latch_next[1][23]};
 				//addr_last2[next_port[1]] <= addr_latch_next[1][23:2];
 				if (next_port[1] == PORT_REQ) begin
@@ -362,7 +365,6 @@ always @(posedge clk) begin
 			case(port[0])
 				PORT_REQ:  begin port1_q <= sd_din; port1_ack <= port1_req; end
 				PORT_CPU1: begin cpu1_q  <= sd_din; end
-				PORT_CPU2: begin cpu2_q  <= sd_din; end
 				default: ;
 			endcase;
 		end
